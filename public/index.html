@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Prompt Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans p-4 md:p-8">
+
+    <div class="max-w-4xl mx-auto">
+        <!-- Header Aplikasi -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-blue-400 mb-2">Master Prompt Generator</h1>
+            <p class="text-slate-400">Ubah ide singkat menjadi 6 struktur prompt profesional yang siap diedit dan digunakan.</p>
+        </header>
+
+        <!-- Kotak Input Utama -->
+        <div class="bg-slate-900 p-6 rounded-xl shadow-lg border border-slate-800 mb-8">
+            <div class="mb-4">
+                <label for="shortPrompt" class="block text-sm font-medium text-slate-300 mb-2">
+                    Masukkan Ide / Prompt Singkat Anda:
+                </label>
+                <textarea id="shortPrompt" rows="3" 
+                    placeholder="Contoh: Buatkan rencana peluncuran aplikasi pencatat keuangan untuk mahasiswa dalam 30 hari." 
+                    class="w-full p-3.5 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-blue-500 transition"></textarea>
+            </div>
+
+            <!-- Baris Pilihan Bahasa & Tombol Generate -->
+            <div class="flex flex-col sm:flex-row gap-4">
+                <div class="sm:w-1/3">
+                    <label for="languageSelect" class="block text-xs font-medium text-slate-400 mb-1">
+                        Bahasa Output:
+                    </label>
+                    <select id="languageSelect" 
+                        class="w-full p-3 rounded-lg bg-slate-950 border border-slate-700 text-white focus:outline-none focus:border-blue-500">
+                        <option value="id">🇮🇩 Bahasa Indonesia</option>
+                        <option value="en">🇺🇸 English (Inggris)</option>
+                    </select>
+                </div>
+
+                <div class="sm:w-2/3 flex items-end">
+                    <button id="generateBtn" onclick="generateMasterPrompt()" 
+                        class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 flex justify-center items-center gap-2 shadow-md">
+                        <span>✨ Buat Master Prompt</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Indikator Loading -->
+        <div id="loading" class="hidden text-center my-10">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-400 mb-2"></div>
+            <p class="text-slate-400">AI sedang menganalisis dan memecah prompt ke dalam 6 struktur...</p>
+        </div>
+
+        <!-- Area Hasil Output (6 Kotak Terpisah yang Bisa Diedit Langsung) -->
+        <div id="resultContainer" class="hidden space-y-5">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-slate-900 p-4 rounded-xl border border-slate-800">
+                <div>
+                    <h2 class="text-lg font-bold text-emerald-400">Hasil Master Prompt (Dapat Diedit)</h2>
+                    <p class="text-xs text-slate-400">Klik teks di dalam kotak mana saja untuk mengubah isinya sebelum disalin.</p>
+                </div>
+                <button onclick="copyAllPrompt()" id="copyBtn" 
+                    class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-sm font-semibold text-white py-2.5 px-5 rounded-lg transition shadow">
+                    📋 Salin Master Prompt Utuh
+                </button>
+            </div>
+
+            <!-- 1. Kotak ROLE (Garis Biru) -->
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 border-l-4 border-l-blue-500">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-bold uppercase tracking-wider text-blue-400">1. Role (Peran AI)</span>
+                </div>
+                <textarea id="boxRole" rows="3" class="w-full bg-slate-950 text-slate-200 p-3 rounded-lg border border-slate-800 focus:outline-none focus:border-blue-500 text-sm leading-relaxed"></textarea>
+            </div>
+
+            <!-- 2. Kotak TASK (Garis Oranye/Amber) -->
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 border-l-4 border-l-amber-500">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-bold uppercase tracking-wider text-amber-400">2. Task (Tugas Utama)</span>
+                </div>
+                <textarea id="boxTask" rows="3" class="w-full bg-slate-950 text-slate-200 p-3 rounded-lg border border-slate-800 focus:outline-none focus:border-amber-500 text-sm leading-relaxed"></textarea>
+            </div>
+
+            <!-- 3. Kotak CONTEXT (Garis Cyan) -->
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 border-l-4 border-l-cyan-500">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-bold uppercase tracking-wider text-cyan-400">3. Context (Konteks & Batasan)</span>
+                </div>
+                <textarea id="boxContext" rows="5" class="w-full bg-slate-950 text-slate-200 p-3 rounded-lg border border-slate-800 focus:outline-none focus:border-cyan-500 text-sm leading-relaxed"></textarea>
+            </div>
+
+            <!-- 4. Kotak REASONING (Garis Merah) -->
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 border-l-4 border-l-red-500">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-bold uppercase tracking-wider text-red-400">4. Reasoning (Tujuan & Alasan)</span>
+                </div>
+                <textarea id="boxReasoning" rows="3" class="w-full bg-slate-950 text-slate-200 p-3 rounded-lg border border-slate-800 focus:outline-none focus:border-red-500 text-sm leading-relaxed"></textarea>
+            </div>
+
+            <!-- 5. Kotak STOP CONDITIONS (Garis Pink) -->
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 border-l-4 border-l-pink-500">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-bold uppercase tracking-wider text-pink-400">5. Stop Conditions (Syarat Selesai)</span>
+                </div>
+                <textarea id="boxStop" rows="4" class="w-full bg-slate-950 text-slate-200 p-3 rounded-lg border border-slate-800 focus:outline-none focus:border-pink-500 text-sm leading-relaxed"></textarea>
+            </div>
+
+            <!-- 6. Kotak OUTPUT (Garis Ungu) -->
+            <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 border-l-4 border-l-purple-500">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-sm font-bold uppercase tracking-wider text-purple-400">6. Output (Format Hasil)</span>
+                </div>
+                <textarea id="boxOutput" rows="5" class="w-full bg-slate-950 text-slate-200 p-3 rounded-lg border border-slate-800 focus:outline-none focus:border-purple-500 text-sm leading-relaxed"></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function generateMasterPrompt() {
+            const shortPrompt = document.getElementById('shortPrompt').value.trim();
+            const language = document.getElementById('languageSelect').value;
+
+            if (!shortPrompt) {
+                alert("Harap masukkan ide atau prompt singkat terlebih dahulu!");
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const resultContainer = document.getElementById('resultContainer');
+
+            btn.disabled = true;
+            btn.classList.add('opacity-50', 'cursor-not-allowed');
+            loading.classList.remove('hidden');
+            resultContainer.classList.add('hidden');
+
+            try {
+                // Mengirim teks prompt dan pilihan bahasa ke backend
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        shortPrompt: shortPrompt,
+                        language: language
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Terjadi kesalahan pada server.");
+                }
+
+                // Mengisi masing-masing kotak teks dengan data JSON dari AI
+                document.getElementById('boxRole').value = data.role;
+                document.getElementById('boxTask').value = data.task;
+                document.getElementById('boxContext').value = data.context;
+                document.getElementById('boxReasoning').value = data.reasoning;
+                document.getElementById('boxStop').value = data.stop_conditions;
+                document.getElementById('boxOutput').value = data.output;
+
+                resultContainer.classList.remove('hidden');
+
+            } catch (error) {
+                alert("Gagal membuat prompt: " + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50', 'cursor-not-allowed');
+                loading.classList.add('hidden');
+            }
+        }
+
+        // Menggabungkan isi terbaru dari ke-6 kotak yang sudah diedit pengguna menjadi 1 prompt siap pakai
+        function copyAllPrompt() {
+            const role = document.getElementById('boxRole').value.trim();
+            const task = document.getElementById('boxTask').value.trim();
+            const context = document.getElementById('boxContext').value.trim();
+            const reasoning = document.getElementById('boxReasoning').value.trim();
+            const stop = document.getElementById('boxStop').value.trim();
+            const output = document.getElementById('boxOutput').value.trim();
+
+            const fullPrompt = `${role}\n\n${task}\n\n${context}\n\n${reasoning}\n\n${stop}\n\n${output}`;
+
+            navigator.clipboard.writeText(fullPrompt).then(() => {
+                const copyBtn = document.getElementById('copyBtn');
+                copyBtn.textContent = "✅ Berhasil Disalin!";
+                setTimeout(() => {
+                    copyBtn.textContent = "📋 Salin Master Prompt Utuh";
+                }, 2000);
+            });
+        }
+    </script>
+</body>
+</html>
